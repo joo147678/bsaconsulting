@@ -1,0 +1,124 @@
+import { formatArabicDate, kindLabel, type Company, type Report } from "@/lib/store";
+
+const dots = (v?: string) => (v && v.trim() ? v : "................");
+
+export function ReportDocument({ report, company }: { report: Report; company?: Company }) {
+  return (
+    <article className="doc-sheet font-serif">
+      <header className="border-b-2 border-primary pb-4 text-center">
+        <h1 className="text-xl font-bold">{dots(company?.name ?? "")}</h1>
+        <p className="mt-1 text-sm">{company?.legalForm}</p>
+        <h2 className="mt-4 text-lg font-bold">محضر {kindLabel[report.kind]}</h2>
+        <p className="text-sm">
+          المنعقدة بتاريخ {formatArabicDate(report.meetingDate)} في تمام الساعة{" "}
+          {dots(report.meetingTime)}
+        </p>
+      </header>
+
+      <section className="mt-6 space-y-2 text-justify">
+        <p>
+          إنه في يوم {formatArabicDate(report.meetingDate)} وفي تمام الساعة {dots(report.meetingTime)}،
+          انعقدت {kindLabel[report.kind]} لشركة {dots(company?.name ?? "")}، المقيدة بالسجل التجاري رقم{" "}
+          {dots(company?.commercialRegister ?? "")}، وذلك بمقر {dots(report.place)}.
+        </p>
+        <p>
+          وقد ترأس الاجتماع السيد/ {dots(report.chairman)}، وتولى أمانة السر السيد/{" "}
+          {dots(report.secretary)}، وجمع الأصوات السيد/ {dots(report.scrutineer)}.
+        </p>
+        <p>
+          وبعد التحقق من صحة انعقاد الجمعية، تبين حضور ما نسبته {dots(report.quorum)} من رأس المال،
+          وبذلك يكون النصاب القانوني متوفرًا لصحة الانعقاد.
+        </p>
+      </section>
+
+      {report.attendees.trim() && (
+        <section className="mt-6">
+          <h3 className="mb-2 font-bold underline">الحاضرون</h3>
+          <ul className="list-inside list-disc space-y-1">
+            {report.attendees
+              .split("\n")
+              .filter(Boolean)
+              .map((line, i) => (
+                <li key={i}>{line}</li>
+              ))}
+          </ul>
+        </section>
+      )}
+
+      {report.kind === "ordinary" ? (
+        <section className="mt-6">
+          <h3 className="mb-2 font-bold underline">جدول الأعمال والقرارات</h3>
+          <ol className="space-y-4">
+            {report.agenda.map((item, i) => (
+              <li key={item.id}>
+                <p className="font-bold">
+                  {i + 1}. {dots(item.title)}
+                </p>
+                {item.discussion.trim() && <p className="text-justify">{item.discussion}</p>}
+                <p className="text-justify">
+                  <span className="font-bold">القرار: </span>
+                  {dots(item.resolution)}
+                </p>
+              </li>
+            ))}
+          </ol>
+        </section>
+      ) : (
+        <section className="mt-6">
+          <h3 className="mb-2 font-bold underline">التعديلات المقررة</h3>
+          <table className="w-full border-collapse text-sm">
+            <thead>
+              <tr>
+                <th className="border border-border bg-secondary p-2">البند</th>
+                <th className="border border-border bg-secondary p-2">قبل التعديل</th>
+                <th className="border border-border bg-secondary p-2">بعد التعديل</th>
+              </tr>
+            </thead>
+            <tbody>
+              {report.amendments.map((a) => (
+                <tr key={a.id}>
+                  <td className="border border-border p-2 align-top font-semibold">
+                    {dots(a.subject)}
+                  </td>
+                  <td className="border border-border p-2 align-top">{dots(a.before)}</td>
+                  <td className="border border-border p-2 align-top">{dots(a.after)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          <p className="mt-3 text-justify">
+            وقد وافقت الجمعية بالإجماع على التعديلات المبينة عاليه، وتفويض الإدارة في اتخاذ كافة
+            الإجراءات اللازمة للتأشير بها في السجل التجاري.
+          </p>
+        </section>
+      )}
+
+      {report.notes.trim() && (
+        <section className="mt-6">
+          <h3 className="mb-2 font-bold underline">ملاحظات</h3>
+          <p className="text-justify">{report.notes}</p>
+        </section>
+      )}
+
+      <section className="mt-6">
+        <p className="text-justify">
+          وحيث لم يكن هناك ما يستدعي المناقشة، فقد اختُتم الاجتماع في تمام الساعة .......... وحُرر هذا
+          المحضر إثباتًا لما تقدم.
+        </p>
+      </section>
+
+      <footer className="mt-12 grid grid-cols-3 gap-6 text-center text-sm">
+        {[
+          ["رئيس الاجتماع", report.chairman],
+          ["أمين السر", report.secretary],
+          ["جامع الأصوات", report.scrutineer],
+        ].map(([role, name]) => (
+          <div key={role}>
+            <p className="font-bold">{role}</p>
+            <p className="mt-8 border-t border-dashed border-foreground pt-1">{dots(name)}</p>
+          </div>
+        ))}
+      </footer>
+    </article>
+  );
+}

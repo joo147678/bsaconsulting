@@ -1,24 +1,99 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { AppShell } from "@/components/AppShell";
+import { formatArabicDate, kindLabel, statusLabel, useDB } from "@/lib/store";
 
-// No head() here: the home route inherits title/description/og/twitter from
-// __root.tsx, and ships no og:image so serve-time hosting can inject the
-// project's social preview (explicit og:image or latest screenshot).
 export const Route = createFileRoute("/")({
-  component: Index,
+  head: () => ({
+    meta: [
+      { title: "لوحة التحكم | نظام محاضر الجمعيات العمومية" },
+      {
+        name: "description",
+        content:
+          "نظام عربي لإعداد ومراجعة وأرشفة محاضر الجمعيات العمومية العادية وغير العادية للشركات.",
+      },
+      { property: "og:title", content: "نظام محاضر الجمعيات العمومية | BSA Consulting" },
+      {
+        property: "og:description",
+        content: "إعداد محاضر الجمعيات العمومية بمعاينة مباشرة وطباعة احترافية.",
+      },
+    ],
+  }),
+  component: Dashboard,
 });
 
-// IMPORTANT: Replace this placeholder. See ./README.md for routing conventions.
-function Index() {
+function Dashboard() {
+  const { db } = useDB();
+  const stats = [
+    { label: "الشركات", value: db.companies.length },
+    { label: "المسودات", value: db.reports.filter((r) => r.status === "draft").length },
+    { label: "قيد المراجعة", value: db.reports.filter((r) => r.status === "review").length },
+    { label: "المعتمدة", value: db.reports.filter((r) => r.status === "approved").length },
+  ];
+
   return (
-    <div
-      className="flex min-h-screen items-center justify-center"
-      style={{ backgroundColor: "#fcfbf8" }}
-    >
-      <img
-        data-lovable-blank-page-placeholder="REMOVE_THIS"
-        src="https://cdn.gpteng.co/blank-app-v1.svg"
-        alt="Your app will live here!"
-      />
-    </div>
+    <AppShell>
+      <div className="flex flex-wrap items-end justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold">لوحة التحكم</h1>
+          <p className="mt-1 text-sm text-muted-foreground">
+            نظرة عامة على الشركات ومحاضر الجمعيات العمومية.
+          </p>
+        </div>
+        <Link
+          to="/reports"
+          className="rounded-md bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition-colors hover:opacity-90"
+        >
+          إنشاء محضر جديد
+        </Link>
+      </div>
+
+      <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        {stats.map((s) => (
+          <div key={s.label} className="rounded-xl border border-border bg-card p-5 shadow-panel">
+            <p className="text-sm text-muted-foreground">{s.label}</p>
+            <p className="mt-2 text-3xl font-bold">{s.value}</p>
+          </div>
+        ))}
+      </div>
+
+      <h2 className="mt-10 text-lg font-bold">أحدث المحاضر</h2>
+      <div className="mt-3 overflow-hidden rounded-xl border border-border bg-card shadow-panel">
+        <table className="w-full text-right text-sm">
+          <thead className="bg-secondary text-secondary-foreground">
+            <tr>
+              <th className="p-3 font-semibold">الشركة</th>
+              <th className="p-3 font-semibold">النوع</th>
+              <th className="p-3 font-semibold">تاريخ الانعقاد</th>
+              <th className="p-3 font-semibold">الحالة</th>
+            </tr>
+          </thead>
+          <tbody>
+            {db.reports.length === 0 && (
+              <tr>
+                <td colSpan={4} className="p-6 text-center text-muted-foreground">
+                  لا توجد محاضر بعد.
+                </td>
+              </tr>
+            )}
+            {db.reports.map((r) => (
+              <tr key={r.id} className="border-t border-border hover:bg-muted">
+                <td className="p-3">
+                  <Link
+                    to="/reports/$reportId"
+                    params={{ reportId: r.id }}
+                    className="font-semibold text-primary hover:underline"
+                  >
+                    {db.companies.find((c) => c.id === r.companyId)?.name ?? "—"}
+                  </Link>
+                </td>
+                <td className="p-3">{kindLabel[r.kind]}</td>
+                <td className="p-3">{formatArabicDate(r.meetingDate)}</td>
+                <td className="p-3">{statusLabel[r.status]}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </AppShell>
   );
 }

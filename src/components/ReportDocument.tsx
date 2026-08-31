@@ -1,6 +1,6 @@
 import { formatArabicDate, kindLabel, type Company, type Report } from "@/lib/store";
 
-const dots = (v: string) => (v && v.trim() ? v : "................");
+const dots = (v?: string) => (v && v.trim() ? v : "................");
 
 export function ReportDocument({ report, company }: { report: Report; company?: Company }) {
   return (

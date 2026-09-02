@@ -31,34 +31,19 @@ function Dashboard() {
   ];
 
   return (
-    <AppShell>
-      <div className="flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold">لوحة التحكم</h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            نظرة عامة على الشركات ومحاضر الجمعيات العمومية.
-          </p>
-        </div>
-        <Link
-          to="/reports"
-          className="rounded-md bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition-colors hover:opacity-90"
-        >
-          إنشاء محضر جديد
-        </Link>
-      </div>
-
-      <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+    <AppShell title="لوحة التحكم" subtitle="نظرة عامة على الشركات ومحاضر الجمعيات العمومية.">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {stats.map((s) => (
-          <div key={s.label} className="rounded-xl border border-border bg-card p-5 shadow-panel">
+          <div key={s.label} className="rounded-lg border border-border bg-card p-5">
             <p className="text-sm text-muted-foreground">{s.label}</p>
             <p className="mt-2 text-3xl font-bold">{s.value}</p>
           </div>
         ))}
       </div>
 
-      <h2 className="mt-10 text-lg font-bold">أحدث المحاضر</h2>
-      <div className="mt-3 overflow-hidden rounded-xl border border-border bg-card shadow-panel">
-        <table className="w-full text-right text-sm">
+      <h2 className="mt-10 text-lg font-semibold">أحدث المحاضر</h2>
+      <div className="mt-3 overflow-hidden rounded-lg border border-border bg-card">
+        <table className="w-full text-start text-sm">
           <thead className="bg-secondary text-secondary-foreground">
             <tr>
               <th className="p-3 font-semibold">الشركة</th>

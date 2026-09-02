@@ -1,15 +1,20 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { Calculator, Download, FileText, ListChecks, PenLine, Printer, Save, StickyNote } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { AppShell } from "@/components/AppShell";
+import { Field, TextAreaField, TextField } from "@/components/Field";
+import { FormSection } from "@/components/FormSection";
 import { ReportDocument } from "@/components/ReportDocument";
 import {
   kindLabel,
+  reportCompleteness,
   statusLabel,
   uid,
   useDB,
   type Report,
   type ReportStatus,
 } from "@/lib/store";
+import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/reports/$reportId")({
   head: () => ({
@@ -35,8 +40,8 @@ function Builder() {
   const [mobileView, setMobileView] = useState<"edit" | "preview">("edit");
 
   useEffect(() => {
-    if (stored && !draft) setDraft(stored);
-  }, [stored, draft]);
+    if (stored && stored.id !== draft?.id) setDraft(stored);
+  }, [stored, draft?.id]);
 
   const company = useMemo(
     () => db.companies.find((c) => c.id === draft?.companyId),
@@ -56,7 +61,6 @@ function Builder() {
     [update],
   );
 
-  // Auto-save every 30 seconds
   useEffect(() => {
     if (!draft) return;
     const t = setInterval(() => save(draft), 30000);
@@ -65,7 +69,7 @@ function Builder() {
 
   if (!draft) {
     return (
-      <AppShell>
+      <AppShell title="المحضر غير موجود">
         <p className="text-muted-foreground">لم يتم العثور على المحضر.</p>
         <Link to="/reports" className="mt-3 inline-block text-primary hover:underline">
           العودة إلى المحاضر
@@ -74,21 +78,18 @@ function Builder() {
     );
   }
 
-  const set = <K extends keyof Report>(key: K, value: Report[K]) =>
-    setDraft({ ...draft, [key]: value });
+  const set = <K extends keyof Report>(key: K, value: Report[K]) => setDraft({ ...draft, [key]: value });
+  const pct = reportCompleteness(draft);
 
   return (
-    <AppShell>
-      <div className="no-print flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border bg-card p-4 shadow-panel">
-        <div>
-          <h1 className="text-lg font-bold">{kindLabel[draft.kind]}</h1>
-          <p className="text-xs text-muted-foreground">
-            {savedAt ? `آخر حفظ: ${savedAt}` : "لم يتم الحفظ بعد"}
-          </p>
-        </div>
-        <div className="flex flex-wrap items-center gap-2">
+    <AppShell
+      flush
+      title={kindLabel[draft.kind]}
+      subtitle={savedAt ? `آخر حفظ: ${savedAt}` : "لم يتم الحفظ بعد"}
+      actions={
+        <>
           <select
-            className="field-input max-w-44"
+            className="field-input max-w-40 py-2"
             value={draft.status}
             onChange={(e) => {
               const next = { ...draft, status: e.target.value as ReportStatus };
@@ -102,50 +103,57 @@ function Builder() {
               </option>
             ))}
           </select>
-          <button
-            onClick={() => save(draft)}
-            className="rounded-md bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:opacity-90"
-          >
-            حفظ
+          <button type="button" onClick={() => window.print()} className="btn-ghost">
+            <Printer className="size-4" />
+            طباعة
           </button>
-          <button
-            onClick={() => window.print()}
-            className="rounded-md border border-border px-4 py-2 text-sm font-semibold hover:bg-secondary"
-          >
-            طباعة / PDF
+          <button type="button" onClick={() => window.print()} className="btn-ghost hidden sm:inline-flex">
+            <Download className="size-4" />
+            تحميل PDF
+          </button>
+          <button type="button" onClick={() => save(draft)} className="btn-primary">
+            <Save className="size-4" />
+            حفظ
           </button>
           <div className="flex rounded-md border border-border lg:hidden">
             <button
+              type="button"
               onClick={() => setMobileView("edit")}
-              className={`px-3 py-2 text-sm ${mobileView === "edit" ? "bg-secondary font-semibold" : ""}`}
+              className={cn("px-3 py-2 text-sm", mobileView === "edit" && "bg-secondary font-semibold")}
             >
               تحرير
             </button>
             <button
+              type="button"
               onClick={() => setMobileView("preview")}
-              className={`px-3 py-2 text-sm ${mobileView === "preview" ? "bg-secondary font-semibold" : ""}`}
+              className={cn("px-3 py-2 text-sm", mobileView === "preview" && "bg-secondary font-semibold")}
             >
               معاينة
             </button>
           </div>
-        </div>
-      </div>
-
-      <div className="mt-6 grid gap-6 lg:grid-cols-2">
-        <div
-          className={`print-area ${mobileView === "preview" ? "block" : "hidden"} max-h-[80vh] overflow-auto rounded-xl bg-muted p-4 lg:sticky lg:top-24 lg:block`}
+        </>
+      }
+    >
+      <div className="flex h-full overflow-hidden">
+        <section
+          className={cn(
+            "no-print relative w-full overflow-y-auto border-l border-border bg-background lg:w-[45%]",
+            mobileView === "preview" ? "hidden lg:block" : "block",
+          )}
         >
-          <ReportDocument report={draft} company={company} />
-        </div>
+          <div className="sticky top-0 z-10 h-1 w-full bg-secondary">
+            <div className="h-1 bg-accent transition-all duration-500" style={{ width: `${pct}%` }} />
+          </div>
+          <div className="flex items-center justify-between px-6 pt-5 lg:px-10">
+            <span className="text-sm font-bold text-foreground">اكتمال المحضر</span>
+            <span className="rounded-md bg-primary-soft px-2 py-0.5 text-sm font-bold text-primary">
+              {pct}%
+            </span>
+          </div>
 
-        <div
-          className={`no-print ${mobileView === "edit" ? "block" : "hidden"} space-y-6 lg:block`}
-        >
-          <section className="rounded-xl border border-border bg-card p-5 shadow-panel">
-            <h2 className="mb-4 font-bold">بيانات الاجتماع</h2>
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div className="sm:col-span-2">
-                <label className="field-label">الشركة</label>
+          <div className="flex flex-col gap-7 p-6 lg:p-10 lg:pt-6">
+            <FormSection title="بيانات الاجتماع" icon={FileText}>
+              <Field label="الشركة">
                 <select
                   className="field-input"
                   value={draft.companyId}
@@ -158,113 +166,77 @@ function Builder() {
                     </option>
                   ))}
                 </select>
-              </div>
-              <div>
-                <label className="field-label">تاريخ الانعقاد</label>
-                <input
+              </Field>
+              <div className="grid grid-cols-2 gap-4">
+                <TextField
+                  label="تاريخ الانعقاد"
                   type="date"
-                  className="field-input"
+                  ltr
                   value={draft.meetingDate}
                   onChange={(e) => set("meetingDate", e.target.value)}
                 />
-              </div>
-              <div>
-                <label className="field-label">الساعة</label>
-                <input
+                <TextField
+                  label="الساعة"
                   type="time"
-                  className="field-input"
+                  ltr
                   value={draft.meetingTime}
                   onChange={(e) => set("meetingTime", e.target.value)}
                 />
-              </div>
-              <div className="sm:col-span-2">
-                <label className="field-label">مكان الانعقاد</label>
-                <input
-                  className="field-input"
-                  value={draft.place}
-                  onChange={(e) => set("place", e.target.value)}
-                />
-              </div>
-              <div>
-                <label className="field-label">رئيس الاجتماع</label>
-                <input
-                  className="field-input"
+                <div className="col-span-2">
+                  <TextField
+                    label="مكان الانعقاد"
+                    value={draft.place}
+                    onChange={(e) => set("place", e.target.value)}
+                  />
+                </div>
+                <TextField
+                  label="رئيس الاجتماع"
                   value={draft.chairman}
                   onChange={(e) => set("chairman", e.target.value)}
                 />
-              </div>
-              <div>
-                <label className="field-label">أمين السر</label>
-                <input
-                  className="field-input"
+                <TextField
+                  label="أمين السر"
                   value={draft.secretary}
                   onChange={(e) => set("secretary", e.target.value)}
                 />
-              </div>
-              <div>
-                <label className="field-label">جامع الأصوات</label>
-                <input
-                  className="field-input"
+                <TextField
+                  label="جامع الأصوات"
                   value={draft.scrutineer}
                   onChange={(e) => set("scrutineer", e.target.value)}
                 />
-              </div>
-              <div>
-                <label className="field-label">نسبة الحضور (النصاب)</label>
-                <input
-                  className="field-input"
+                <TextField
+                  label="نسبة الحضور (النصاب)"
+                  ltr
                   value={draft.quorum}
                   onChange={(e) => set("quorum", e.target.value)}
                 />
+                <div className="col-span-2">
+                  <TextAreaField
+                    label="الحاضرون (سطر لكل حاضر)"
+                    value={draft.attendees}
+                    onChange={(e) => set("attendees", e.target.value)}
+                  />
+                </div>
               </div>
-              <div className="sm:col-span-2">
-                <label className="field-label">الحاضرون (سطر لكل حاضر)</label>
-                <textarea
-                  className="field-input min-h-24"
-                  value={draft.attendees}
-                  onChange={(e) => set("attendees", e.target.value)}
-                />
-              </div>
-            </div>
-          </section>
+            </FormSection>
 
-          {draft.kind === "ordinary" ? (
-            <section className="rounded-xl border border-border bg-card p-5 shadow-panel">
-              <div className="mb-4 flex items-center justify-between">
-                <h2 className="font-bold">جدول الأعمال</h2>
-                <button
-                  onClick={() =>
-                    set("agenda", [
-                      ...draft.agenda,
-                      { id: uid(), title: "", discussion: "", resolution: "" },
-                    ])
-                  }
-                  className="rounded-md border border-border px-3 py-1.5 text-xs font-semibold hover:bg-secondary"
-                >
-                  إضافة بند
-                </button>
-              </div>
-              <div className="space-y-5">
+            {draft.kind === "ordinary" ? (
+              <FormSection title="جدول الأعمال" icon={ListChecks}>
                 {draft.agenda.map((item, i) => (
-                  <div key={item.id} className="rounded-lg border border-border p-4">
+                  <div key={item.id} className="rounded-lg border border-border bg-muted/60 p-4">
                     <div className="mb-3 flex items-center justify-between">
-                      <span className="text-sm font-semibold">البند {i + 1}</span>
+                      <span className="text-xs font-bold text-primary">بند #{i + 1}</span>
                       <button
-                        onClick={() =>
-                          set(
-                            "agenda",
-                            draft.agenda.filter((x) => x.id !== item.id),
-                          )
-                        }
-                        className="text-xs font-semibold text-destructive hover:underline"
+                        type="button"
+                        onClick={() => set("agenda", draft.agenda.filter((x) => x.id !== item.id))}
+                        className="flex items-center gap-1 rounded-md px-2 py-1 text-xs font-semibold text-destructive hover:bg-red-50"
                       >
                         حذف
                       </button>
                     </div>
-                    <div className="space-y-3">
-                      <input
-                        className="field-input"
-                        placeholder="عنوان البند"
+                    <div className="flex flex-col gap-3">
+                      <TextField
+                        label="عنوان البند"
                         value={item.title}
                         onChange={(e) =>
                           set(
@@ -275,9 +247,8 @@ function Builder() {
                           )
                         }
                       />
-                      <textarea
-                        className="field-input min-h-20"
-                        placeholder="المناقشة"
+                      <TextAreaField
+                        label="المناقشة"
                         value={item.discussion}
                         onChange={(e) =>
                           set(
@@ -288,9 +259,8 @@ function Builder() {
                           )
                         }
                       />
-                      <textarea
-                        className="field-input min-h-16"
-                        placeholder="القرار"
+                      <TextAreaField
+                        label="القرار"
                         value={item.resolution}
                         onChange={(e) =>
                           set(
@@ -304,30 +274,26 @@ function Builder() {
                     </div>
                   </div>
                 ))}
-              </div>
-            </section>
-          ) : (
-            <section className="rounded-xl border border-border bg-card p-5 shadow-panel">
-              <div className="mb-4 flex items-center justify-between">
-                <h2 className="font-bold">التعديلات (قبل / بعد)</h2>
                 <button
+                  type="button"
+                  className="btn-dashed"
                   onClick={() =>
-                    set("amendments", [
-                      ...draft.amendments,
-                      { id: uid(), subject: "", before: "", after: "" },
+                    set("agenda", [
+                      ...draft.agenda,
+                      { id: uid(), title: "", discussion: "", resolution: "" },
                     ])
                   }
-                  className="rounded-md border border-border px-3 py-1.5 text-xs font-semibold hover:bg-secondary"
                 >
-                  إضافة تعديل
+                  إضافة بند
                 </button>
-              </div>
-              <div className="space-y-5">
+              </FormSection>
+            ) : (
+              <FormSection title="التعديلات (قبل / بعد)" icon={PenLine}>
                 {draft.amendments.map((a) => (
-                  <div key={a.id} className="rounded-lg border border-border p-4">
-                    <div className="mb-3 flex items-center justify-between">
+                  <div key={a.id} className="rounded-lg border border-border bg-muted/60 p-4">
+                    <div className="mb-3 flex items-center justify-between gap-3">
                       <select
-                        className="field-input max-w-60"
+                        className="field-input"
                         value={a.subject}
                         onChange={(e) =>
                           set(
@@ -355,21 +321,18 @@ function Builder() {
                         ))}
                       </select>
                       <button
+                        type="button"
                         onClick={() =>
-                          set(
-                            "amendments",
-                            draft.amendments.filter((x) => x.id !== a.id),
-                          )
+                          set("amendments", draft.amendments.filter((x) => x.id !== a.id))
                         }
-                        className="text-xs font-semibold text-destructive hover:underline"
+                        className="shrink-0 text-xs font-semibold text-destructive hover:underline"
                       >
                         حذف
                       </button>
                     </div>
                     <div className="grid gap-3 sm:grid-cols-2">
-                      <textarea
-                        className="field-input min-h-20"
-                        placeholder="قبل التعديل"
+                      <TextAreaField
+                        label="قبل التعديل"
                         value={a.before}
                         onChange={(e) =>
                           set(
@@ -380,9 +343,8 @@ function Builder() {
                           )
                         }
                       />
-                      <textarea
-                        className="field-input min-h-20"
-                        placeholder="بعد التعديل"
+                      <TextAreaField
+                        label="بعد التعديل"
                         value={a.after}
                         onChange={(e) =>
                           set(
@@ -396,19 +358,53 @@ function Builder() {
                     </div>
                   </div>
                 ))}
-              </div>
-            </section>
-          )}
+                <button
+                  type="button"
+                  className="btn-dashed"
+                  onClick={() =>
+                    set("amendments", [
+                      ...draft.amendments,
+                      { id: uid(), subject: "", before: "", after: "" },
+                    ])
+                  }
+                >
+                  إضافة تعديل
+                </button>
+              </FormSection>
+            )}
 
-          <section className="rounded-xl border border-border bg-card p-5 shadow-panel">
-            <label className="field-label">ملاحظات</label>
-            <textarea
-              className="field-input min-h-20"
-              value={draft.notes}
-              onChange={(e) => set("notes", e.target.value)}
-            />
-          </section>
-        </div>
+            <FormSection title="ملاحظات" icon={StickyNote} defaultOpen={Boolean(draft.notes)}>
+              <TextAreaField
+                label="ملاحظات"
+                value={draft.notes}
+                onChange={(e) => set("notes", e.target.value)}
+              />
+            </FormSection>
+
+            <div className="rounded-lg bg-stage p-4 text-white">
+              <div className="flex items-center justify-between py-1 text-sm">
+                <span className="flex items-center gap-2 text-white/70">
+                  <Calculator className="size-4" />
+                  اكتمال البيانات
+                </span>
+                <span className="font-semibold">{pct}%</span>
+              </div>
+              <div className="mt-1 flex items-center justify-between border-t border-white/15 pt-2 text-base">
+                <span className="font-bold text-accent">حالة المحضر</span>
+                <span className="font-black text-accent">{statusLabel[draft.status]}</span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section
+          className={cn(
+            "print-area hidden w-[55%] overflow-y-auto bg-stage p-8 pt-10 lg:block",
+            mobileView === "preview" && "!block w-full lg:w-[55%]",
+          )}
+        >
+          <ReportDocument report={draft} company={company} />
+        </section>
       </div>
     </AppShell>
   );

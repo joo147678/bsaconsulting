@@ -203,6 +203,26 @@ export const statusLabel: Record<ReportStatus, string> = {
   approved: "معتمد",
 };
 
+export function reportCompleteness(report: Report): number {
+  const filled = [
+    Boolean(report.companyId),
+    Boolean(report.meetingDate),
+    Boolean(report.meetingTime),
+    Boolean(report.place.trim()),
+    Boolean(report.chairman.trim()),
+    Boolean(report.secretary.trim()),
+    Boolean(report.scrutineer.trim()),
+    Boolean(report.quorum.trim()),
+    Boolean(report.attendees.trim()),
+  ];
+  if (report.kind === "ordinary") {
+    filled.push(report.agenda.some((item) => item.title.trim() && item.resolution.trim()));
+  } else {
+    filled.push(report.amendments.some((item) => item.subject.trim() && item.after.trim()));
+  }
+  return Math.round((filled.filter(Boolean).length / filled.length) * 100);
+}
+
 export const kindLabel: Record<ReportKind, string> = {
   ordinary: "جمعية عمومية عادية",
   extraordinary: "جمعية عمومية غير عادية",

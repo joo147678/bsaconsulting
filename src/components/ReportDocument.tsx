@@ -4,18 +4,35 @@ const dots = (v?: string) => (v && v.trim() ? v : "................");
 
 export function ReportDocument({ report, company }: { report: Report; company?: Company }) {
   return (
-    <article className="doc-sheet font-serif">
-      <header className="border-b-2 border-primary pb-4 text-center">
-        <h1 className="text-xl font-bold">{dots(company?.name ?? "")}</h1>
-        <p className="mt-1 text-sm">{company?.legalForm}</p>
-        <h2 className="mt-4 text-lg font-bold">محضر {kindLabel[report.kind]}</h2>
-        <p className="text-sm">
-          المنعقدة بتاريخ {formatArabicDate(report.meetingDate)} في تمام الساعة{" "}
-          {dots(report.meetingTime)}
-        </p>
+    <article dir="rtl" className="doc-sheet text-black shadow-[0_20px_60px_-15px_rgba(0,0,0,0.6)]">
+      <header className="flex items-start justify-between border-b-2 border-black pb-4">
+        <div className="text-center">
+          <h1 className="text-3xl font-black tracking-wide">محضر</h1>
+          <div className="mt-1 text-sm">
+            الحالة : <span>{report.status === "approved" ? "معتمد" : report.status === "review" ? "قيد المراجعة" : "مسودة"}</span>
+          </div>
+        </div>
+        <div className="text-start text-[11px] leading-relaxed">
+          <div>النوع : {kindLabel[report.kind]}</div>
+          <div>تاريخ الانعقاد : {formatArabicDate(report.meetingDate)}</div>
+          <div>
+            الساعة : <span dir="ltr">{dots(report.meetingTime)}</span>
+          </div>
+          <div>المكان : {dots(report.place)}</div>
+        </div>
       </header>
 
-      <section className="mt-6 space-y-2 text-justify">
+      <section className="border-b border-black/20 py-4">
+        <div className="mb-1 text-base font-bold">الشركة</div>
+        <div className="text-sm">الاسم : {dots(company?.name ?? "")}</div>
+        <div className="text-sm">{company?.legalForm}</div>
+        <div className="text-sm">
+          السجل التجاري : <span dir="ltr">{dots(company?.commercialRegister ?? "")}</span>
+        </div>
+        <div className="text-sm">{dots(company?.address ?? "")}</div>
+      </section>
+
+      <section className="space-y-2 py-4 text-justify text-sm">
         <p>
           إنه في يوم {formatArabicDate(report.meetingDate)} وفي تمام الساعة {dots(report.meetingTime)}،
           انعقدت {kindLabel[report.kind]} لشركة {dots(company?.name ?? "")}، المقيدة بالسجل التجاري رقم{" "}
@@ -32,9 +49,9 @@ export function ReportDocument({ report, company }: { report: Report; company?: 
       </section>
 
       {report.attendees.trim() && (
-        <section className="mt-6">
-          <h3 className="mb-2 font-bold underline">الحاضرون</h3>
-          <ul className="list-inside list-disc space-y-1">
+        <section className="py-2">
+          <h3 className="mb-2 font-bold">الحاضرون</h3>
+          <ul className="list-inside list-disc space-y-1 text-sm">
             {report.attendees
               .split("\n")
               .filter(Boolean)
@@ -46,9 +63,9 @@ export function ReportDocument({ report, company }: { report: Report; company?: 
       )}
 
       {report.kind === "ordinary" ? (
-        <section className="mt-6">
-          <h3 className="mb-2 font-bold underline">جدول الأعمال والقرارات</h3>
-          <ol className="space-y-4">
+        <section className="py-4">
+          <h3 className="mb-2 font-bold">جدول الأعمال والقرارات</h3>
+          <ol className="space-y-4 text-sm">
             {report.agenda.map((item, i) => (
               <li key={item.id}>
                 <p className="font-bold">
@@ -56,7 +73,7 @@ export function ReportDocument({ report, company }: { report: Report; company?: 
                 </p>
                 {item.discussion.trim() && <p className="text-justify">{item.discussion}</p>}
                 <p className="text-justify">
-                  <span className="font-bold">القرار: </span>
+                  <span className="font-bold">القرار : </span>
                   {dots(item.resolution)}
                 </p>
               </li>
@@ -64,29 +81,27 @@ export function ReportDocument({ report, company }: { report: Report; company?: 
           </ol>
         </section>
       ) : (
-        <section className="mt-6">
-          <h3 className="mb-2 font-bold underline">التعديلات المقررة</h3>
-          <table className="w-full border-collapse text-sm">
+        <section className="py-4">
+          <h3 className="mb-2 font-bold">التعديلات المقررة</h3>
+          <table className="w-full border-collapse text-[11px]">
             <thead>
-              <tr>
-                <th className="border border-border bg-secondary p-2">البند</th>
-                <th className="border border-border bg-secondary p-2">قبل التعديل</th>
-                <th className="border border-border bg-secondary p-2">بعد التعديل</th>
+              <tr className="bg-secondary">
+                <th className="border border-black/40 p-1.5 text-center font-bold">البند</th>
+                <th className="border border-black/40 p-1.5 text-center font-bold">قبل التعديل</th>
+                <th className="border border-black/40 p-1.5 text-center font-bold">بعد التعديل</th>
               </tr>
             </thead>
             <tbody>
               {report.amendments.map((a) => (
                 <tr key={a.id}>
-                  <td className="border border-border p-2 align-top font-semibold">
-                    {dots(a.subject)}
-                  </td>
-                  <td className="border border-border p-2 align-top">{dots(a.before)}</td>
-                  <td className="border border-border p-2 align-top">{dots(a.after)}</td>
+                  <td className="border border-black/30 p-1.5 align-top font-semibold">{dots(a.subject)}</td>
+                  <td className="border border-black/30 p-1.5 align-top">{dots(a.before)}</td>
+                  <td className="border border-black/30 p-1.5 align-top">{dots(a.after)}</td>
                 </tr>
               ))}
             </tbody>
           </table>
-          <p className="mt-3 text-justify">
+          <p className="mt-3 text-justify text-sm">
             وقد وافقت الجمعية بالإجماع على التعديلات المبينة عاليه، وتفويض الإدارة في اتخاذ كافة
             الإجراءات اللازمة للتأشير بها في السجل التجاري.
           </p>
@@ -94,20 +109,20 @@ export function ReportDocument({ report, company }: { report: Report; company?: 
       )}
 
       {report.notes.trim() && (
-        <section className="mt-6">
-          <h3 className="mb-2 font-bold underline">ملاحظات</h3>
-          <p className="text-justify">{report.notes}</p>
+        <section className="py-2">
+          <h3 className="mb-2 font-bold">ملاحظات</h3>
+          <p className="text-justify text-sm">{report.notes}</p>
         </section>
       )}
 
-      <section className="mt-6">
+      <section className="py-4 text-sm">
         <p className="text-justify">
           وحيث لم يكن هناك ما يستدعي المناقشة، فقد اختُتم الاجتماع في تمام الساعة .......... وحُرر هذا
           المحضر إثباتًا لما تقدم.
         </p>
       </section>
 
-      <footer className="mt-12 grid grid-cols-3 gap-6 text-center text-sm">
+      <footer className="mt-8 grid grid-cols-3 gap-6 border-t border-black/20 pt-4 text-center text-sm">
         {[
           ["رئيس الاجتماع", report.chairman],
           ["أمين السر", report.secretary],
@@ -115,7 +130,7 @@ export function ReportDocument({ report, company }: { report: Report; company?: 
         ].map(([role, name]) => (
           <div key={role}>
             <p className="font-bold">{role}</p>
-            <p className="mt-8 border-t border-dashed border-foreground pt-1">{dots(name)}</p>
+            <p className="mt-8 border-t border-dashed border-black pt-1">{dots(name)}</p>
           </div>
         ))}
       </footer>

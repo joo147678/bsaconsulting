@@ -1,6 +1,9 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { AppShell } from "@/components/AppShell";
-import { emptyReport, formatArabicDate, kindLabel, statusLabel, useDB } from "@/lib/store";
+import { openCompany, openReport } from "@/components/CreateFlow";
+import { OnboardingCard } from "@/components/OnboardingCard";
+import { StatusBadge } from "@/components/StatusBadge";
+import { formatArabicDate, kindLabel, loadDemoData, useDB } from "@/lib/store";
 
 export const Route = createFileRoute("/reports/")({
   head: () => ({
@@ -15,63 +18,60 @@ export const Route = createFileRoute("/reports/")({
 });
 
 function Reports() {
-  const { db, update } = useDB();
-  const navigate = useNavigate();
-
-  const create = (kind: "ordinary" | "extraordinary") => {
-    const companyId = db.companies[0]?.id ?? "";
-    const report = emptyReport(kind, companyId);
-    update((d) => ({ ...d, reports: [report, ...d.reports] }));
-    navigate({ to: "/reports/$reportId", params: { reportId: report.id } });
-  };
+  const { db } = useDB();
 
   return (
-    <AppShell>
-      <div className="flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold">المحاضر</h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            أنشئ محضرًا جديدًا أو تابع المحاضر القائمة.
+    <AppShell title="المحاضر" subtitle="كل محضر مرتبط بشركة. ابدأ بالشركة إن لم تُضف بعد.">
+      {db.companies.length === 0 ? (
+        <OnboardingCard
+          onAddCompany={() => openCompany({ thenReport: true, onboard: true })}
+          onLoadDemo={loadDemoData}
+        />
+      ) : (
+      <div className="space-y-6">
+        {db.reports.length === 0 && (
+          <p className="rounded-lg border border-border bg-card p-6 text-center text-sm text-muted-foreground">
+            لا توجد محاضر بعد.{" "}
+            <button type="button" onClick={() => openReport()} className="font-semibold text-primary">
+              أنشئ محضرًا
+            </button>
           </p>
-        </div>
-        <div className="flex gap-2">
-          <button
-            onClick={() => create("ordinary")}
-            className="rounded-md bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:opacity-90"
-          >
-            محضر جمعية عادية
-          </button>
-          <button
-            onClick={() => create("extraordinary")}
-            className="rounded-md border border-border bg-card px-4 py-2 text-sm font-semibold hover:bg-secondary"
-          >
-            محضر جمعية غير عادية
-          </button>
-        </div>
+        )}
+        {db.companies.map((company) => {
+          const items = db.reports.filter((r) => r.companyId === company.id);
+          if (items.length === 0) return null;
+          return (
+            <section key={company.id}>
+              <h2 className="mb-2">
+                <Link
+                  to="/companies/$companyId"
+                  params={{ companyId: company.id }}
+                  className="text-sm font-bold hover:text-primary"
+                >
+                  {company.name}
+                </Link>
+              </h2>
+              <div className="space-y-2">
+                {items.map((r) => (
+                  <Link
+                    key={r.id}
+                    to="/reports/$reportId"
+                    params={{ reportId: r.id }}
+                    className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-border bg-card p-4 transition-colors hover:border-primary"
+                  >
+                    <div>
+                      <p className="font-semibold">{kindLabel[r.kind]}</p>
+                      <p className="text-sm text-muted-foreground">{formatArabicDate(r.meetingDate)}</p>
+                    </div>
+                    <StatusBadge report={r} />
+                  </Link>
+                ))}
+              </div>
+            </section>
+          );
+        })}
       </div>
-
-      <div className="mt-6 space-y-3">
-        {db.reports.map((r) => (
-          <Link
-            key={r.id}
-            to="/reports/$reportId"
-            params={{ reportId: r.id }}
-            className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border bg-card p-4 shadow-panel transition-colors hover:border-primary"
-          >
-            <div>
-              <p className="font-semibold">
-                {db.companies.find((c) => c.id === r.companyId)?.name ?? "بدون شركة"}
-              </p>
-              <p className="text-sm text-muted-foreground">
-                {kindLabel[r.kind]} · {formatArabicDate(r.meetingDate)}
-              </p>
-            </div>
-            <span className="rounded-full bg-secondary px-3 py-1 text-xs font-semibold">
-              {statusLabel[r.status]}
-            </span>
-          </Link>
-        ))}
-      </div>
+      )}
     </AppShell>
   );
 }

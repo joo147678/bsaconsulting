@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>BSA Consulting — Business Brief</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Sans+Arabic:wght@400;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      @page {
+        size: A4;
+        margin: 0;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        margin: 0;
+        background: #e8eef3;
+        color: #1e2937;
+        font-family: "IBM Plex Sans", "IBM Plex Sans Arabic", sans-serif;
+      }
+      .stage {
+        min-height: 100vh;
+        padding: 24px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 24px;
+      }
+      .sheet {
+        width: 210mm;
+        min-height: 297mm;
+        background: #fff;
+        padding: 22mm 20mm;
+        display: flex;
+        flex-direction: column;
+      }
+      header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        border-bottom: 2px solid #1e3a5f;
+        padding-bottom: 14px;
+      }
+      .mark {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      .logo {
+        width: 36px;
+        height: 36px;
+        background: #1e3a5f;
+        color: #fff;
+        font-size: 11px;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .brand {
+        font-size: 13px;
+        font-weight: 700;
+      }
+      .brand span {
+        display: block;
+        font-size: 11px;
+        font-weight: 400;
+        color: #64748b;
+        margin-top: 2px;
+      }
+      .meta {
+        text-align: right;
+        font-size: 11px;
+        color: #64748b;
+        line-height: 1.5;
+      }
+      h1 {
+        margin: 20px 0 6px;
+        font-size: 22px;
+        font-weight: 700;
+        color: #1e3a5f;
+      }
+      .kicker {
+        margin: 0 0 16px;
+        font-size: 12px;
+        color: #64748b;
+      }
+      h2 {
+        margin: 18px 0 8px;
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: #1e3a5f;
+      }
+      p,
+      li {
+        font-size: 12.5px;
+        line-height: 1.65;
+      }
+      p {
+        margin: 0 0 10px;
+      }
+      ul {
+        margin: 0;
+        padding-left: 18px;
+      }
+      li {
+        margin-bottom: 4px;
+      }
+      .ar {
+        font-family: "IBM Plex Sans Arabic", "IBM Plex Sans", sans-serif;
+        direction: rtl;
+        unicode-bidi: isolate;
+      }
+      .flow {
+        margin: 0;
+        padding: 12px 14px;
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        font-size: 12.5px;
+        line-height: 1.7;
+      }
+      footer {
+        margin-top: auto;
+        padding-top: 14px;
+        border-top: 1px solid #e2e8f0;
+        font-size: 10px;
+        color: #94a3b8;
+        display: flex;
+        justify-content: space-between;
+      }
+      @media print {
+        html,
+        body {
+          background: #fff;
+        }
+        .stage {
+          padding: 0;
+          gap: 0;
+        }
+        .sheet {
+          min-height: 297mm;
+          page-break-after: always;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="stage">
+      <article class="sheet">
+        <header>
+          <div class="mark">
+            <div class="logo">BSA</div>
+            <div class="brand">
+              BSA Consulting
+              <span>Internal business brief · Locked</span>
+            </div>
+          </div>
+          <div class="meta">
+            2 September 2026<br />
+            One page · A4<br />
+            Status: scope locked
+          </div>
+        </header>
+
+        <h1>General Assembly Minutes Studio</h1>
+        <p class="kicker">
+          Working name:
+          <span class="ar">نظام محاضر الجمعيات العمومية</span>
+          · Arabic only · Internal BSA tool
+        </p>
+
+        <h2>The bet</h2>
+        <p>
+          BSA already prepares general assembly minutes for at least 100 client
+          companies. Today that work lives in Word: slow, easy to get wrong, too
+          many back-and-forths. This studio lets a BSA accountant draft the
+          محضر once, on a live A4 page that follows Companies Law and BSA house
+          style, then send it to a supervisor for one review. We are building
+          this flow to prove to the client that the operation takes less time
+          and fewer iterations. If that deal closes, this is one BSA service
+          that can scale across the rest of the book.
+        </p>
+
+        <h2>Who uses it</h2>
+        <ul>
+          <li>
+            <strong>BSA accountant</strong> — daily user. Creates the draft from
+            the company register.
+          </li>
+          <li>
+            <strong>BSA supervisor</strong> — reviews and approves. Not a client
+            login in this product; the client receives the finished minute.
+          </li>
+        </ul>
+
+        <h2>The review flow we must show</h2>
+        <p class="flow">
+          Accountant creates a <strong>draft</strong> → supervisor is notified
+          on WhatsApp with a review link → opening the link marks the minute
+          <strong>in review</strong> → supervisor clicks
+          <strong>Approved</strong>. Arabic UI only. Current layout is acceptable
+          for v1; legal wording must still match Companies Law and BSA house
+          style.
+        </p>
+
+        <h2>This scope vs next</h2>
+        <ul>
+          <li>
+            <strong>Now:</strong> UI and UX of the full flow — screens, status,
+            copy — so a demo can replace Word for next month’s client minutes.
+          </li>
+          <li>
+            <strong>Next:</strong> real roles, cloud, and live WhatsApp. Do not
+            build accounts or filing in this pass.
+          </li>
+        </ul>
+
+        <h2>Success</h2>
+        <p>
+          Next month, BSA issues client minutes from this tool, not Word. The
+          demo must make the time-saved / fewer-iterations story obvious in one
+          sitting.
+        </p>
+
+        <footer>
+          <span>BSA Consulting · Confidential</span>
+          <span>Page 1 of 1</span>
+        </footer>
+      </article>
+    </div>
+  </body>
+</html>

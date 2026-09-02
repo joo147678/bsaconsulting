@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>BSA Consulting — PRD</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Sans+Arabic:wght@400;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      @page {
+        size: A4;
+        margin: 0;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        margin: 0;
+        background: #e8eef3;
+        color: #1e2937;
+        font-family: "IBM Plex Sans", "IBM Plex Sans Arabic", sans-serif;
+      }
+      .stage {
+        min-height: 100vh;
+        padding: 24px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 24px;
+      }
+      .sheet {
+        width: 210mm;
+        min-height: 297mm;
+        background: #fff;
+        padding: 20mm 18mm 18mm;
+        display: flex;
+        flex-direction: column;
+      }
+      header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        border-bottom: 2px solid #1e3a5f;
+        padding-bottom: 12px;
+      }
+      .mark {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      .logo {
+        width: 36px;
+        height: 36px;
+        background: #1e3a5f;
+        color: #fff;
+        font-size: 11px;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .brand {
+        font-size: 13px;
+        font-weight: 700;
+      }
+      .brand span {
+        display: block;
+        font-size: 11px;
+        font-weight: 400;
+        color: #64748b;
+        margin-top: 2px;
+      }
+      .meta {
+        text-align: right;
+        font-size: 11px;
+        color: #64748b;
+        line-height: 1.5;
+      }
+      h1 {
+        margin: 16px 0 4px;
+        font-size: 20px;
+        font-weight: 700;
+        color: #1e3a5f;
+      }
+      .kicker {
+        margin: 0 0 14px;
+        font-size: 12px;
+        color: #64748b;
+      }
+      h2 {
+        margin: 14px 0 6px;
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: #1e3a5f;
+      }
+      p,
+      li,
+      td,
+      th {
+        font-size: 12px;
+        line-height: 1.55;
+      }
+      p {
+        margin: 0 0 8px;
+      }
+      ul,
+      ol {
+        margin: 0 0 8px;
+        padding-left: 18px;
+      }
+      li {
+        margin-bottom: 3px;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 0 0 8px;
+      }
+      th,
+      td {
+        border: 1px solid #e2e8f0;
+        padding: 6px 8px;
+        text-align: left;
+        vertical-align: top;
+      }
+      th {
+        background: #f1f5f9;
+        font-size: 11px;
+        font-weight: 700;
+        color: #1e3a5f;
+      }
+      .ar {
+        font-family: "IBM Plex Sans Arabic", "IBM Plex Sans", sans-serif;
+        direction: rtl;
+        unicode-bidi: isolate;
+      }
+      .note {
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        padding: 10px 12px;
+        font-size: 12px;
+        line-height: 1.6;
+        margin: 0 0 8px;
+      }
+      footer {
+        margin-top: auto;
+        padding-top: 12px;
+        border-top: 1px solid #e2e8f0;
+        font-size: 10px;
+        color: #94a3b8;
+        display: flex;
+        justify-content: space-between;
+      }
+      @media print {
+        html,
+        body {
+          background: #fff;
+        }
+        .stage {
+          padding: 0;
+          gap: 0;
+        }
+        .sheet {
+          min-height: 297mm;
+          page-break-after: always;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="stage">
+      <article class="sheet">
+        <header>
+          <div class="mark">
+            <div class="logo">BSA</div>
+            <div class="brand">
+              BSA Consulting
+              <span>Product requirements · v1 UI/UX</span>
+            </div>
+          </div>
+          <div class="meta">
+            2 September 2026<br />
+            Two pages · A4<br />
+            Companion to the business brief
+          </div>
+        </header>
+
+        <h1>PRD — Minutes studio (UI/UX)</h1>
+        <p class="kicker">
+          Product:
+          <span class="ar">نظام محاضر الجمعيات العمومية</span>
+          · Internal · Arabic only
+        </p>
+
+        <h2>Problem</h2>
+        <p>
+          BSA accountants produce ordinary and extraordinary general assembly
+          minutes for 100+ clients in Word. Each cycle costs time: re-typing
+          company data, formatting A4, sending a file, waiting for comments,
+          iterating. The client we are pitching must see, in one demo, that this
+          operation can be drafted once, reviewed once, and issued from the
+          tool.
+        </p>
+
+        <h2>Users</h2>
+        <table>
+          <tr>
+            <th>Role</th>
+            <th>Job in this product</th>
+            <th>v1 (now)</th>
+          </tr>
+          <tr>
+            <td>Accountant</td>
+            <td>Select company, draft محضر, send for review, print</td>
+            <td>Primary click-path in the UI</td>
+          </tr>
+          <tr>
+            <td>Supervisor</td>
+            <td>Open review link, read A4, approve</td>
+            <td>Second click-path; no real login</td>
+          </tr>
+          <tr>
+            <td>Client company</td>
+            <td>Receives the finished minute — does not use the tool</td>
+            <td>Out of product; in the sales story only</td>
+          </tr>
+        </table>
+
+        <h2>Goal and success</h2>
+        <p>
+          <strong>Goal:</strong> a clickable Arabic UI that sells the
+          time-saved / fewer-iterations story.<br />
+          <strong>Success:</strong> BSA issues next month’s client minutes from
+          this tool, not Word. Closing that proof supports a larger BSA deal.
+        </p>
+
+        <h2>In scope now (UI/UX only)</h2>
+        <ul>
+          <li>Workbench already built: companies, two minute types, live A4, completeness, print.</li>
+          <li>
+            Status model on screen:
+            <span class="ar">مسودة</span> →
+            <span class="ar">قيد المراجعة</span> →
+            <span class="ar">معتمد</span>.
+          </li>
+          <li>
+            Accountant action: “Send for review” (simulates WhatsApp: show that
+            a supervisor would get a link).
+          </li>
+          <li>
+            Supervisor view: open the same minute via a review URL; first open
+            sets status to in review; primary action is Approve.
+          </li>
+          <li>Arabic copy only. Current visual layout is acceptable for v1.</li>
+          <li>
+            Document content must read as Companies Law + BSA house style; do
+            not invent a new legal form in this pass.
+          </li>
+        </ul>
+
+        <h2>Explicitly out of this pass</h2>
+        <ul>
+          <li>Real WhatsApp API, SMS, or email delivery.</li>
+          <li>Accounts, permissions, cloud database, multi-device sync.</li>
+          <li>GAFI / tax / commercial-register filing.</li>
+          <li>English UI or bilingual PDF.</li>
+          <li>Client-facing portal.</li>
+        </ul>
+
+        <footer>
+          <span>BSA Consulting · Confidential</span>
+          <span>Page 1 of 2</span>
+        </footer>
+      </article>
+
+      <article class="sheet">
+        <header>
+          <div class="mark">
+            <div class="logo">BSA</div>
+            <div class="brand">
+              BSA Consulting
+              <span>Product requirements · v1 UI/UX</span>
+            </div>
+          </div>
+          <div class="meta">Flow, next scope, risks</div>
+        </header>
+
+        <h2>Target click-path (simulate, do not wire)</h2>
+        <ol>
+          <li>Accountant opens a company and creates ordinary or extraordinary minutes.</li>
+          <li>Fills the form against the live A4 until completeness is honest.</li>
+          <li>
+            Clicks send-for-review. UI confirms: supervisor will be notified on
+            WhatsApp with a link. Status stays مسودة until the link is opened.
+          </li>
+          <li>
+            Demo uses a “Open as supervisor” link (same machine). Opening it
+            sets قيد المراجعة.
+          </li>
+          <li>Supervisor reads the paper, clicks اعتماد. Status becomes معتمد. Accountant can print / PDF.</li>
+        </ol>
+        <p class="note">
+          Persistence may stay in the browser for this pass. The review URL can
+          be a route such as
+          <code>/reports/:id?view=supervisor</code>
+          — enough for a live demo, not a production security model.
+        </p>
+
+        <h2>Next scope (do not start until this demo lands)</h2>
+        <table>
+          <tr>
+            <th>Item</th>
+            <th>Why it waits</th>
+          </tr>
+          <tr>
+            <td>Roles + cloud</td>
+            <td>Real accountant vs supervisor identities and shared files</td>
+          </tr>
+          <tr>
+            <td>WhatsApp notify</td>
+            <td>Needs a hosted review link and a sender number</td>
+          </tr>
+          <tr>
+            <td>Audit trail</td>
+            <td>Who opened, who approved, when — after the deal, not before</td>
+          </tr>
+        </table>
+
+        <h2>Risks</h2>
+        <ul>
+          <li>
+            Legal template: house style is “good enough” for v1 only if a BSA
+            supervisor signs off that the Arabic clauses are issuable.
+          </li>
+          <li>
+            Demo cheat: if send-for-review does nothing visible, the client will
+            not believe the iteration story. The status change must be obvious.
+          </li>
+          <li>
+            100-client scale is a next-scope problem. This pass must look like
+            it can hold that book, not actually host it.
+          </li>
+        </ul>
+
+        <h2>Build order after this PRD</h2>
+        <ol>
+          <li>Add send-for-review + supervisor view + status transitions in the existing UI.</li>
+          <li>Walk the demo: draft → WhatsApp story → in review → approved → print.</li>
+          <li>Stop. Cloud, roles, and WhatsApp API are a separate project.</li>
+        </ol>
+
+        <footer>
+          <span>BSA Consulting · Confidential</span>
+          <span>Page 2 of 2</span>
+        </footer>
+      </article>
+    </div>
+  </body>
+</html>

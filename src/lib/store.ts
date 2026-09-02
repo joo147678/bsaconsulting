@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
+import { seedDB } from "./seed";
 
 export type ReportKind = "ordinary" | "extraordinary";
 export type ReportStatus = "draft" | "review" | "approved";
@@ -12,6 +13,7 @@ export interface Partner {
 export interface Company {
   id: string;
   name: string;
+  shortName: string;
   legalForm: string;
   commercialRegister: string;
   taxId: string;
@@ -20,6 +22,14 @@ export interface Company {
   purpose: string;
   partners: Partner[];
 }
+
+export interface Accountant {
+  id: string;
+  name: string;
+  phone: string;
+}
+
+export type DisplayStatus = ReportStatus | "waiting";
 
 export interface AgendaItem {
   id: string;
@@ -52,86 +62,87 @@ export interface Report {
   amendments: Amendment[];
   notes: string;
   updatedAt: string;
+  reviewRequestedAt: string | null;
 }
 
 export interface DB {
   companies: Company[];
   reports: Report[];
+  accountants: Accountant[];
 }
 
-const KEY = "bsa-assembly-db-v1";
+const KEY = "bsa-assembly-db-v4";
 
 export const uid = () => Math.random().toString(36).slice(2, 10);
 
-const seed = (): DB => {
-  const companyId = "cmp-1";
-  return {
-    companies: [
-      {
-        id: companyId,
-        name: "شركة النيل للتجارة والتوريدات",
-        legalForm: "شركة ذات مسؤولية محدودة",
-        commercialRegister: "123456",
-        taxId: "300-450-981",
-        capital: "1,000,000 جنيه مصري",
-        address: "15 شارع التحرير، الدقي، الجيزة",
-        purpose: "التجارة العامة والتوريدات",
-        partners: [
-          { id: uid(), name: "أحمد محمود سيد", share: "60%" },
-          { id: uid(), name: "منى عبد الرحمن", share: "40%" },
-        ],
-      },
-    ],
-    reports: [
-      {
-        id: "rep-1",
-        kind: "ordinary",
-        status: "draft",
-        companyId,
-        meetingDate: "2026-03-30",
-        meetingTime: "11:00",
-        place: "المقر الرئيسي للشركة",
-        chairman: "أحمد محمود سيد",
-        secretary: "منى عبد الرحمن",
-        scrutineer: "محاسب/ خالد فؤاد",
-        quorum: "100%",
-        attendees: "أحمد محمود سيد (60%)\nمنى عبد الرحمن (40%)",
-        agenda: [
-          {
-            id: uid(),
-            title: "اعتماد القوائم المالية عن السنة المالية المنتهية",
-            discussion:
-              "تمت مناقشة القوائم المالية وتقرير مراقب الحسابات عن السنة المالية المنتهية في 31/12/2025.",
-            resolution: "تمت الموافقة بالإجماع على اعتماد القوائم المالية.",
-          },
-          {
-            id: uid(),
-            title: "تعيين مراقب الحسابات وتحديد أتعابه",
-            discussion: "عُرض على الجمعية تجديد تعيين مراقب الحسابات الحالي.",
-            resolution: "تمت الموافقة بالإجماع على تجديد التعيين لسنة مالية جديدة.",
-          },
-        ],
-        amendments: [],
-        notes: "",
-        updatedAt: new Date().toISOString(),
-      },
-    ],
-  };
-};
+const emptyDB = (): DB => ({ companies: [], reports: [], accountants: [] });
+const seed = (): DB => emptyDB();
 
 let cache: DB | null = null;
 const listeners = new Set<() => void>();
+
+function mergeDemo(db: DB): DB {
+  const demo = seedDB();
+  const accountants = db.accountants ?? [];
+  const companyIds = new Set(db.companies.map((c) => c.id));
+  const reportIds = new Set(db.reports.map((r) => r.id));
+  const accountantIds = new Set(accountants.map((a) => a.id));
+  return {
+    ...db,
+    companies: [...demo.companies.filter((c) => !companyIds.has(c.id)), ...db.companies],
+    reports: [...demo.reports.filter((r) => !reportIds.has(r.id)), ...db.reports],
+    accountants: [...demo.accountants.filter((a) => !accountantIds.has(a.id)), ...accountants],
+  };
+}
 
 function load(): DB {
   if (cache) return cache;
   if (typeof window === "undefined") return seed();
   try {
     const raw = window.localStorage.getItem(KEY);
-    cache = raw ? (JSON.parse(raw) as DB) : seed();
+    if (!raw) {
+      cache = seed();
+      return cache;
+    }
+    const base = normalize(JSON.parse(raw) as DB);
+    // Keep a truly empty start. If the accountant already has companies,
+    // restore any missing demo files beside their own work.
+    if (base.companies.length === 0 && base.reports.length === 0) {
+      cache = base;
+      return cache;
+    }
+    const merged = normalize(mergeDemo(base));
+    cache = merged;
+    if (
+      merged.companies.length !== base.companies.length ||
+      merged.reports.length !== base.reports.length ||
+      merged.accountants.length !== base.accountants.length
+    ) {
+      window.localStorage.setItem(KEY, JSON.stringify(merged));
+    }
   } catch {
     cache = seed();
   }
   return cache;
+}
+
+function normalize(db: DB): DB {
+  return {
+    ...db,
+    companies: db.companies.map((c) => ({
+      ...c,
+      shortName: c.shortName || companyShortName(c.name),
+    })),
+    reports: db.reports.map((r) => ({
+      ...r,
+      reviewRequestedAt: r.reviewRequestedAt ?? null,
+    })),
+    accountants: (db.accountants ?? []).map((a) => ({
+      id: a.id,
+      name: a.name ?? "",
+      phone: a.phone ?? "",
+    })),
+  };
 }
 
 function save(next: DB) {
@@ -146,9 +157,23 @@ export function useDB() {
   const [db, setDb] = useState<DB>(() => (typeof window === "undefined" ? seed() : load()));
 
   useEffect(() => {
-    setDb(load());
     const l = () => setDb({ ...load() });
     listeners.add(l);
+    const current = normalize(load());
+    if (current.companies.length > 0 || current.reports.length > 0) {
+      const merged = normalize(mergeDemo(current));
+      if (
+        merged.companies.length !== current.companies.length ||
+        merged.reports.length !== current.reports.length ||
+        merged.accountants.length !== current.accountants.length
+      ) {
+        save(merged);
+      } else {
+        setDb(merged);
+      }
+    } else {
+      setDb(current);
+    }
     return () => {
       listeners.delete(l);
     };
@@ -159,6 +184,19 @@ export function useDB() {
   }, []);
 
   return { db, update };
+}
+
+export function loadDemoData() {
+  save(normalize(mergeDemo(load())));
+}
+
+export function missingDemo(db: DB) {
+  const demo = seedDB();
+  return (
+    demo.companies.some((c) => !db.companies.some((x) => x.id === c.id)) ||
+    demo.reports.some((r) => !db.reports.some((x) => x.id === r.id)) ||
+    demo.accountants.some((a) => !db.accountants.some((x) => x.id === a.id))
+  );
 }
 
 export function emptyReport(kind: ReportKind, companyId: string): Report {
@@ -180,13 +218,25 @@ export function emptyReport(kind: ReportKind, companyId: string): Report {
       kind === "extraordinary" ? [{ id: uid(), subject: "المركز الرئيسي", before: "", after: "" }] : [],
     notes: "",
     updatedAt: new Date().toISOString(),
+    reviewRequestedAt: null,
   };
+}
+
+export function reportFromCompany(kind: ReportKind, company: Company): Report {
+  const report = emptyReport(kind, company.id);
+  if (company.address.trim()) report.place = company.address;
+  const attendees = company.partners
+    .filter((p) => p.name.trim())
+    .map((p) => (p.share.trim() ? `${p.name} — ${p.share}` : p.name));
+  if (attendees.length) report.attendees = attendees.join("\n");
+  return report;
 }
 
 export function emptyCompany(): Company {
   return {
     id: uid(),
     name: "",
+    shortName: "",
     legalForm: "شركة ذات مسؤولية محدودة",
     commercialRegister: "",
     taxId: "",
@@ -197,11 +247,38 @@ export function emptyCompany(): Company {
   };
 }
 
+export function emptyAccountant(): Accountant {
+  return { id: uid(), name: "", phone: "" };
+}
+
 export const statusLabel: Record<ReportStatus, string> = {
   draft: "مسودة",
   review: "قيد المراجعة",
   approved: "معتمد",
 };
+
+export const displayStatusLabel: Record<DisplayStatus, string> = {
+  draft: "مسودة",
+  waiting: "بانتظار المشرف",
+  review: "قيد المراجعة",
+  approved: "معتمد",
+};
+
+export function displayStatus(report: Pick<Report, "status" | "reviewRequestedAt">): DisplayStatus {
+  if (report.status === "draft" && report.reviewRequestedAt) return "waiting";
+  return report.status;
+}
+
+export function companyShortName(name: string) {
+  const latin = name.search(/[A-Za-z]/);
+  const arabic = (latin > 0 ? name.slice(0, latin) : name).trim();
+  return arabic.replace(/^شركة\s+/, "") || name;
+}
+
+export function companyLabel(company: Pick<Company, "name" | "shortName"> | undefined) {
+  if (!company) return "بدون شركة";
+  return company.shortName || companyShortName(company.name);
+}
 
 export function reportCompleteness(report: Report): number {
   const filled = [
@@ -226,6 +303,11 @@ export function reportCompleteness(report: Report): number {
 export const kindLabel: Record<ReportKind, string> = {
   ordinary: "جمعية عمومية عادية",
   extraordinary: "جمعية عمومية غير عادية",
+};
+
+export const kindShortLabel: Record<ReportKind, string> = {
+  ordinary: "عادية",
+  extraordinary: "غير عادية",
 };
 
 export function formatArabicDate(iso: string) {
